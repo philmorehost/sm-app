@@ -1,0 +1,11 @@
+# Composer dependencies
+/vendor/
+
+# Log files
+*.log
+
+# Environment-specific files
+.env
+
+# PHPUnit cache
+.phpunit.cache/
