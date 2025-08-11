@@ -47,8 +47,26 @@ if ($step === 'install' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // 1. Create tables
         try {
-            $sql = file_get_contents($db_schema_path);
-            $pdo->exec($sql);
+            $sql_script = file_get_contents($db_schema_path);
+
+            // Remove single-line and multi-line comments from the SQL script
+            $sql_script = preg_replace('/--.*/', '', $sql_script);
+            $sql_script = preg_replace('!/\*.*?\*/!s', '', $sql_script);
+
+            // Split the script into individual statements, filtering out empty ones.
+            $statements = array_filter(array_map('trim', explode(';', $sql_script)));
+
+            foreach ($statements as $index => $statement) {
+                if (!empty($statement)) {
+                    try {
+                        $pdo->exec($statement . ';');
+                    } catch (PDOException $e) {
+                        $failing_statement = substr($statement, 0, 150);
+                        throw new Exception("Error executing SQL statement #" . ($index + 1) . ": " . $e->getMessage() . " (Statement starts with: '{$failing_statement}...')", 0, $e);
+                    }
+                }
+            }
+
             $success_messages[] = "Database tables created successfully.";
         } catch (Exception $e) {
             $errors[] = "Error creating database tables: " . $e->getMessage();

@@ -34,6 +34,9 @@ class OrderController
         $whmcsApi = new \EduFlex\Core\WhmcsApi();
         $result = $whmcsApi->domainCheck($domain);
 
+        // Also pass back the domain that was checked, so the JS can display it.
+        $result['domain'] = $domain;
+
         // The WHMCS DomainWhois API returns a 'status' of 'available' or 'unavailable'.
         // We will pass this through.
         echo json_encode($result);
