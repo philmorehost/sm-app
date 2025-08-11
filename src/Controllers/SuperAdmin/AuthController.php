@@ -60,6 +60,16 @@ class AuthController
             exit;
         }
 
+        try {
+            $pdo = \EduFlex\Core\Database::getConnection();
+            $stmt = $pdo->query("SELECT * FROM schools ORDER BY created_at DESC");
+            $schools = $stmt->fetchAll();
+        } catch (\PDOException $e) {
+            // For simplicity, we'll just show an empty array on error.
+            // In a real app, you'd want to log this and show an error message.
+            $schools = [];
+        }
+
         require_once __DIR__ . '/../../../views/super_admin/dashboard.php';
     }
 

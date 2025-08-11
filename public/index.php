@@ -15,6 +15,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // 2. Simple Routing
 use EduFlex\Controllers\SuperAdmin\AuthController;
+use EduFlex\Controllers\SuperAdmin\SchoolController;
 
 $request_uri = $_SERVER['REQUEST_URI'];
 $base_path = ''; // If the app is in a subdirectory, change this
@@ -54,6 +55,16 @@ switch ($route) {
     case 'super-admin/dashboard':
         $controller = new AuthController();
         $controller->dashboard();
+        break;
+
+    case 'super-admin/schools/create':
+        $controller = new SchoolController();
+        $controller->create();
+        break;
+
+    case 'super-admin/schools/store':
+        $controller = new SchoolController();
+        $controller->store();
         break;
 
     case 'super-admin/logout':
