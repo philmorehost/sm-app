@@ -1,5 +1,12 @@
 <?php
 
+// --- DEBUGGING: TEMPORARILY ENABLE ERROR REPORTING ---
+// This should be removed in a production environment.
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+// --- END DEBUGGING ---
+
 // Front Controller
 
 // 1. Load Composer's autoloader
@@ -15,9 +22,8 @@ $base_path = ''; // If the app is in a subdirectory, change this
 use EduFlex\Controllers\OrderController;
 
 // Simple router
-$route = str_replace($base_path, '', $request_uri);
+$route = parse_url($request_uri, PHP_URL_PATH) ?? '';
 $route = trim($route, '/');
-$route = strtok($route, '?'); // Remove query string
 
 switch ($route) {
     case 'order':
