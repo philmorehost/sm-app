@@ -32,6 +32,11 @@ switch ($route) {
         $controller->showOrderForm();
         break;
 
+    case 'order/submit':
+        $controller = new OrderController();
+        $controller->processOrder();
+        break;
+
     case 'api/domain-check':
         $controller = new OrderController();
         $controller->checkDomain();

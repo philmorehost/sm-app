@@ -21,6 +21,30 @@ class WhmcsApi
     }
 
     /**
+     * Adds a new client to WHMCS.
+     *
+     * @param array $clientData The client's details (firstname, lastname, email, etc.).
+     * @return array The result from the WHMCS API.
+     */
+    public function addClient(array $clientData): array
+    {
+        $params = array_merge(['action' => 'AddClient'], $clientData);
+        return $this->sendRequest($params);
+    }
+
+    /**
+     * Adds a new order to WHMCS.
+     *
+     * @param array $orderData The order details (clientid, pid, domain, etc.).
+     * @return array The result from the WHMCS API.
+     */
+    public function addOrder(array $orderData): array
+    {
+        $params = array_merge(['action' => 'AddOrder'], $orderData);
+        return $this->sendRequest($params);
+    }
+
+    /**
      * Checks the availability of a domain name using the WHMCS API.
      *
      * @param string $domain The domain name to check.

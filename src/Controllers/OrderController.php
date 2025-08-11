@@ -41,4 +41,92 @@ class OrderController
         // We will pass this through.
         echo json_encode($result);
     }
+
+    public function processOrder()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            die('Method Not Allowed');
+        }
+
+        // --- 1. Collect and Validate Data ---
+        $domain = trim($_POST['domain'] ?? '');
+        $school_name = trim($_POST['school_name'] ?? '');
+        $firstname = trim($_POST['firstname'] ?? '');
+        $lastname = trim($_POST['lastname'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        // Basic validation
+        if (empty($domain) || empty($school_name) || empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
+            // In a real app, redirect back with errors
+            die('All fields are required.');
+        }
+
+        $whmcsApi = new \EduFlex\Core\WhmcsApi();
+        $pdo = \EduFlex\Core\Database::getConnection();
+
+        // --- 2. Create Pending School Record ---
+        try {
+            $stmt = $pdo->prepare("INSERT INTO schools (name, email, domain, status) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$school_name, $email, $domain, 'pending']);
+            $school_id = $pdo->lastInsertId();
+        } catch (\PDOException $e) {
+            die("Error creating local school record: " . $e->getMessage());
+        }
+
+        // --- 3. Create WHMCS Client ---
+        $clientData = [
+            'firstname' => $firstname,
+            'lastname'  => $lastname,
+            'email'     => $email,
+            'password2' => $password,
+            'country'   => 'US', // Placeholder, should be collected in form
+            'phonenumber' => '1234567890', // Placeholder
+            'address1'  => '123 Main St', // Placeholder
+            'city'      => 'Anytown', // Placeholder
+            'state'     => 'CA', // Placeholder
+            'postcode'  => '90210', // Placeholder
+        ];
+        $clientResult = $whmcsApi->addClient($clientData);
+
+        if ($clientResult['result'] !== 'success' || empty($clientResult['clientid'])) {
+            // In a real app, you'd want to log this and show a friendly error
+            die("Could not create client account in WHMCS: " . ($clientResult['message'] ?? 'Unknown error'));
+        }
+        $clientId = $clientResult['clientid'];
+
+        // --- 4. Update local record with client ID ---
+        $stmt = $pdo->prepare("UPDATE schools SET whmcs_client_id = ? WHERE id = ?");
+        $stmt->execute([$clientId, $school_id]);
+
+        // --- 5. Create WHMCS Order ---
+        $orderData = [
+            'clientid' => $clientId,
+            'pid' => [1], // Placeholder Product ID for the school plan
+            'domain' => [$domain],
+            'domaintype' => ['register'],
+            'regperiod' => [1], // 1 year
+            'paymentmethod' => 'mailinpayment', // A safe default that doesn't require pre-configuration
+        ];
+        $orderResult = $whmcsApi->addOrder($orderData);
+
+        if ($orderResult['result'] !== 'success' || empty($orderResult['orderid'])) {
+            die("Could not create order in WHMCS: " . ($orderResult['message'] ?? 'Unknown error'));
+        }
+        $orderId = $orderResult['orderid'];
+        $invoiceId = $orderResult['invoiceid'];
+
+        // --- 6. Update local record with order ID ---
+        $stmt = $pdo->prepare("UPDATE schools SET whmcs_order_id = ? WHERE id = ?");
+        $stmt->execute([$orderId, $school_id]);
+
+        // --- 7. Redirect to Invoice ---
+        $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
+        $whmcsBaseUrl = rtrim(dirname($whmcsConfig['url']), '/includes');
+        $invoiceUrl = $whmcsBaseUrl . '/viewinvoice.php?id=' . $invoiceId;
+
+        header('Location: ' . $invoiceUrl);
+        exit;
+    }
 }
