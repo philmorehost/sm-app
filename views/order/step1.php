@@ -29,6 +29,16 @@
     <div class="container">
         <h1>School Ordering Process</h1>
 
+        <?php
+        session_start();
+        if (isset($_SESSION['error_message'])):
+        ?>
+            <div class="alert alert-error"><?= htmlspecialchars($_SESSION['error_message']) ?></div>
+        <?php
+            unset($_SESSION['error_message']);
+        endif;
+        ?>
+
         <form action="/order/submit" method="POST">
             <!-- Step 1: Domain Selection -->
             <div id="step1">

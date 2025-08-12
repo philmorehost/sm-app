@@ -72,6 +72,13 @@ class OrderController
             $stmt->execute([$school_name, $email, $domain, 'pending']);
             $school_id = $pdo->lastInsertId();
         } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') { // Integrity constraint violation (duplicate entry)
+                session_start();
+                $_SESSION['error_message'] = 'A school with this domain name or email address already exists in our system.';
+                header('Location: /order');
+                exit;
+            }
+            // For any other database error, show the detailed message for debugging.
             die("Error creating local school record: " . $e->getMessage());
         }
 
