@@ -20,6 +20,7 @@ use EduFlex\Controllers\OrderController;
 use EduFlex\Controllers\WebhookController;
 use EduFlex\Controllers\PaymentController;
 use EduFlex\Controllers\School\AuthController as SchoolAuthController;
+use EduFlex\Controllers\School\PaymentSettingsController as SchoolPaymentSettingsController;
 
 
 // --- 3. Multi-Tenancy Logic ---
@@ -60,6 +61,18 @@ if ($school_id) {
         case 'dashboard':
             // This will be the school admin's dashboard
             require_once __DIR__ . '/../views/school/dashboard.php';
+            break;
+        case 'payment-settings':
+            $controller = new SchoolPaymentSettingsController();
+            $controller->index();
+            break;
+        case 'payment-settings/update':
+            $controller = new SchoolPaymentSettingsController();
+            $controller->update();
+            break;
+        case 'payment-instructions':
+            $controller = new SchoolPaymentSettingsController();
+            $controller->showPaymentInstructions();
             break;
         default:
             // For now, default to login for any other school URL

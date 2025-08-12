@@ -15,7 +15,11 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="/dashboard" class="brand">School Admin Panel</a>
+        <div>
+            <a href="/dashboard" class="brand">School Admin Panel</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/payment-settings">Payment Settings</a>
+        </div>
         <a href="/logout">Logout</a>
     </div>
 

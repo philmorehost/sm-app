@@ -44,3 +44,17 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- You can add a default super admin user for initial setup,
 -- but be sure to change the password in a real environment.
 -- Example: INSERT INTO `super_admins` (`name`, `email`, `password`) VALUES ('Super Admin', 'admin@eduflex.com', PASSWORD_HASH('password123', PASSWORD_DEFAULT));
+
+
+-- Table for School-Specific Payment Settings (e.g., Bank Transfer)
+CREATE TABLE IF NOT EXISTS `payment_settings` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `school_id` INT UNSIGNED NOT NULL UNIQUE,
+  `bank_name` VARCHAR(255) NULL,
+  `account_name` VARCHAR(255) NULL,
+  `account_number` VARCHAR(50) NULL,
+  `other_details` TEXT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (`school_id`) REFERENCES `schools`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
