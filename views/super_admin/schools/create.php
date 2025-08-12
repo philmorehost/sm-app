@@ -24,7 +24,11 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="/super-admin/dashboard" class="brand">EduFlex Super Admin</a>
+        <div>
+            <a href="/super-admin/dashboard" class="brand">EduFlex Super Admin</a>
+            <a href="/super-admin/dashboard">Schools</a>
+            <a href="/super-admin/transactions">Transactions</a>
+        </div>
         <a href="/super-admin/logout">Logout</a>
     </div>
 

@@ -16,11 +16,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // 2. Simple Routing
 use EduFlex\Controllers\SuperAdmin\AuthController;
 use EduFlex\Controllers\SuperAdmin\SchoolController;
+use EduFlex\Controllers\SuperAdmin\TransactionController;
 
 $request_uri = $_SERVER['REQUEST_URI'];
 $base_path = ''; // If the app is in a subdirectory, change this
 
 use EduFlex\Controllers\OrderController;
+use EduFlex\Controllers\WebhookController;
 
 // Simple router
 $route = parse_url($request_uri, PHP_URL_PATH) ?? '';
@@ -42,6 +44,11 @@ switch ($route) {
         $controller->checkDomain();
         break;
 
+    case 'webhooks/whmcs':
+        $controller = new WebhookController();
+        $controller->handleWhmcs();
+        break;
+
     case '':
     case 'home':
         require_once __DIR__ . '/../views/landing.php';
@@ -60,6 +67,11 @@ switch ($route) {
     case 'super-admin/dashboard':
         $controller = new AuthController();
         $controller->dashboard();
+        break;
+
+    case 'super-admin/transactions':
+        $controller = new TransactionController();
+        $controller->index();
         break;
 
     case 'super-admin/schools/create':
@@ -85,6 +97,11 @@ switch ($route) {
     case 'super-admin/schools/delete':
         $controller = new SchoolController();
         $controller->destroy();
+        break;
+
+    case 'super-admin/schools/approve':
+        $controller = new SchoolController();
+        $controller->approve();
         break;
 
     case 'super-admin/logout':

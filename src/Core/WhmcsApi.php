@@ -45,6 +45,22 @@ class WhmcsApi
     }
 
     /**
+     * Retrieves a list of orders from WHMCS.
+     *
+     * @param array $options Filtering options for the GetOrders call.
+     * @return array The result from the WHMCS API.
+     */
+    public function getOrders(array $options = []): array
+    {
+        // Set a reasonable limit if not provided
+        if (!isset($options['limit'])) {
+            $options['limit'] = 50;
+        }
+        $params = array_merge(['action' => 'GetOrders'], $options);
+        return $this->sendRequest($params);
+    }
+
+    /**
      * Checks the availability of a domain name using the WHMCS API.
      *
      * @param string $domain The domain name to check.

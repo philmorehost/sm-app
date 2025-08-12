@@ -22,12 +22,19 @@
         .actions a, .actions button { font-size: 14px; padding: 5px 10px; margin-right: 5px; }
         .actions .btn-delete { background-color: #e74c3c; }
         .actions .btn-delete:hover { background-color: #c0392b; }
+        .actions .btn-approve { background-color: #f39c12; }
+        .actions .btn-approve:hover { background-color: #d68910; }
         .actions form { display: inline-block; }
+        .status-pending { background-color: #fef9e7; }
     </style>
 </head>
 <body>
     <div class="navbar">
-        <a href="/super-admin/dashboard" class="brand">EduFlex Super Admin</a>
+        <div>
+            <a href="/super-admin/dashboard" class="brand">EduFlex Super Admin</a>
+            <a href="/super-admin/dashboard">Schools</a>
+            <a href="/super-admin/transactions">Transactions</a>
+        </div>
         <a href="/super-admin/logout">Logout</a>
     </div>
 
@@ -56,18 +63,25 @@
                     </thead>
                     <tbody>
                         <?php foreach ($schools as $school): ?>
-                            <tr>
+                            <tr class="<?= $school['status'] === 'pending' ? 'status-pending' : '' ?>">
                                 <td><?= htmlspecialchars($school['name']) ?></td>
                                 <td><?= htmlspecialchars($school['email']) ?></td>
                                 <td><?= htmlspecialchars($school['status']) ?></td>
                                 <td><?= htmlspecialchars($school['domain']) ?></td>
                                 <td><?= date('M j, Y', strtotime($school['created_at'])) ?></td>
                                 <td class="actions">
-                                    <a href="/super-admin/schools/edit?id=<?= $school['id'] ?>" class="btn btn-secondary">Edit</a>
-                                    <form action="/super-admin/schools/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this school?');">
-                                        <input type="hidden" name="id" value="<?= $school['id'] ?>">
-                                        <button type="submit" class="btn btn-delete">Delete</button>
-                                    </form>
+                                    <?php if ($school['status'] === 'pending'): ?>
+                                        <form action="/super-admin/schools/approve" method="POST">
+                                            <input type="hidden" name="id" value="<?= $school['id'] ?>">
+                                            <button type="submit" class="btn btn-approve">Approve</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <a href="/super-admin/schools/edit?id=<?= $school['id'] ?>" class="btn btn-secondary">Edit</a>
+                                        <form action="/super-admin/schools/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this school?');">
+                                            <input type="hidden" name="id" value="<?= $school['id'] ?>">
+                                            <button type="submit" class="btn btn-delete">Delete</button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

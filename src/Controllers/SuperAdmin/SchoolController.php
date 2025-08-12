@@ -93,6 +93,34 @@ class SchoolController
     }
 
     /**
+     * Approve a pending school and set its status to active.
+     */
+    public function approve()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            die('Method Not Allowed');
+        }
+
+        $id = $_POST['id'] ?? null;
+        if (empty($id)) {
+            die('ID is required.');
+        }
+
+        try {
+            $pdo = \EduFlex\Core\Database::getConnection();
+            $stmt = $pdo->prepare("UPDATE schools SET status = 'active' WHERE id = ?");
+            $stmt->execute([$id]);
+
+            header('Location: /super-admin/dashboard');
+            exit;
+
+        } catch (\PDOException $e) {
+            die('Database error: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Delete a school from the database.
      */
     public function destroy()

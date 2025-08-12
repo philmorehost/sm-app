@@ -7,4 +7,5 @@ return [
     'secret' => 'YOUR_WHMCS_API_SECRET',
     'accesskey' => 'YOUR_WHMCS_API_ACCESS_KEY', // Optional access key
     'responsetype' => 'json',
+    'webhook_secret' => 'YOUR_WHMCS_WEBHOOK_SECRET',
 ];
