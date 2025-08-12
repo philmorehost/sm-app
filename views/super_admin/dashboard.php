@@ -16,9 +16,13 @@
         .btn:hover { background-color: #229954; }
         .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
         th { background-color: #f2f2f2; }
         .empty-state { text-align: center; padding: 40px; }
+        .actions a, .actions button { font-size: 14px; padding: 5px 10px; margin-right: 5px; }
+        .actions .btn-delete { background-color: #e74c3c; }
+        .actions .btn-delete:hover { background-color: #c0392b; }
+        .actions form { display: inline-block; }
     </style>
 </head>
 <body>
@@ -47,6 +51,7 @@
                             <th>Status</th>
                             <th>Domain</th>
                             <th>Date Registered</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,6 +62,13 @@
                                 <td><?= htmlspecialchars($school['status']) ?></td>
                                 <td><?= htmlspecialchars($school['domain']) ?></td>
                                 <td><?= date('M j, Y', strtotime($school['created_at'])) ?></td>
+                                <td class="actions">
+                                    <a href="/super-admin/schools/edit?id=<?= $school['id'] ?>" class="btn btn-secondary">Edit</a>
+                                    <form action="/super-admin/schools/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this school?');">
+                                        <input type="hidden" name="id" value="<?= $school['id'] ?>">
+                                        <button type="submit" class="btn btn-delete">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

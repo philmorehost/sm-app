@@ -72,6 +72,21 @@ switch ($route) {
         $controller->store();
         break;
 
+    case 'super-admin/schools/edit':
+        $controller = new SchoolController();
+        $controller->edit();
+        break;
+
+    case 'super-admin/schools/update':
+        $controller = new SchoolController();
+        $controller->update();
+        break;
+
+    case 'super-admin/schools/delete':
+        $controller = new SchoolController();
+        $controller->destroy();
+        break;
+
     case 'super-admin/logout':
         $controller = new AuthController();
         $controller->logout();
