@@ -67,13 +67,23 @@ class OrderController
         $whmcsApi = new \EduFlex\Core\WhmcsApi();
         $pdo = \EduFlex\Core\Database::getConnection();
 
-        // --- 2. Create Pending School Record ---
+        // --- 2. Create Pending School and Admin User ---
         try {
-            // All orders create a local school record first.
+            $pdo->beginTransaction();
+
+            // Create the school record
             $stmt = $pdo->prepare("INSERT INTO schools (name, email, domain, status) VALUES (?, ?, ?, ?)");
             $stmt->execute([$school_name, $email, $domain, 'pending']);
             $school_id = $pdo->lastInsertId();
+
+            // Create the default admin user for the school
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $userStmt = $pdo->prepare("INSERT INTO users (school_id, role, name, email, password) VALUES (?, ?, ?, ?, ?)");
+            $userStmt->execute([$school_id, 'admin', $firstname . ' ' . $lastname, $email, $hashed_password]);
+
+            $pdo->commit();
         } catch (\PDOException $e) {
+            $pdo->rollBack();
             if ($e->getCode() === '23000') { // Integrity constraint violation (duplicate entry)
                 session_start();
                 $_SESSION['error_message'] = 'A school with this domain name or email address already exists in our system.';

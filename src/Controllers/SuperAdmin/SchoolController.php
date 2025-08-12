@@ -185,9 +185,11 @@ class SchoolController
         // 3. Insert into database
         try {
             $pdo = \EduFlex\Core\Database::getConnection();
+            $pdo->beginTransaction();
+
+            // Insert school
             $sql = "INSERT INTO schools (name, email, phone, address, domain, status) VALUES (:name, :email, :phone, :address, :domain, :status)";
             $stmt = $pdo->prepare($sql);
-
             $stmt->execute([
                 ':name' => $name,
                 ':email' => !empty($email) ? $email : null,
@@ -196,12 +198,23 @@ class SchoolController
                 ':domain' => !empty($domain) ? $domain : null,
                 ':status' => 'active' // Default to active when created manually
             ]);
+            $school_id = $pdo->lastInsertId();
+
+            // Insert default admin user for the new school
+            $default_admin_email = !empty($email) ? $email : "admin@" . ($domain ?? "school{$school_id}.com");
+            $default_password = 'password'; // Admin should change this immediately
+            $hashed_password = password_hash($default_password, PASSWORD_DEFAULT);
+            $userStmt = $pdo->prepare("INSERT INTO users (school_id, role, name, email, password) VALUES (?, ?, ?, ?, ?)");
+            $userStmt->execute([$school_id, 'admin', 'Default Admin', $default_admin_email, $hashed_password]);
+
+            $pdo->commit();
 
             // 4. Redirect back to the dashboard
             header('Location: /super-admin/dashboard');
             exit;
 
         } catch (\PDOException $e) {
+            $pdo->rollBack();
             // In a real app, log this and show a user-friendly error page
             // For now, just display the error for debugging
             die('Database error: ' . $e->getMessage());
