@@ -16,7 +16,7 @@ class WhmcsApi
 
         $this->client = new Client([
             'base_uri' => $this->config['url'],
-            'timeout'  => 5.0,
+            'timeout'  => 30.0, // Increased timeout to 30 seconds for slow servers
         ]);
     }
 
@@ -137,11 +137,11 @@ class WhmcsApi
             return json_decode($response->getBody()->getContents(), true);
 
         } catch (GuzzleException $e) {
-            // In a real app, you would log this error.
-            // For now, return an error structure that the frontend can handle.
+            // In a real app, you would log the full error: error_log($e->getMessage());
+            // For the user, return a generic, friendly error message.
             return [
                 'result' => 'error',
-                'message' => 'Could not connect to the domain registrar. ' . $e->getMessage(),
+                'message' => 'Could not connect to the domain registrar at this time. Please try again in a few moments.',
             ];
         }
     }
