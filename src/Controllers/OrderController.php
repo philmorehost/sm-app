@@ -56,9 +56,10 @@ class OrderController
         $lastname = trim($_POST['lastname'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        $payment_method = $_POST['payment_method'] ?? '';
 
         // Basic validation
-        if (empty($domain) || empty($school_name) || empty($firstname) || empty($lastname) || empty($email) || empty($password)) {
+        if (empty($domain) || empty($school_name) || empty($firstname) || empty($lastname) || empty($email) || empty($password) || empty($payment_method)) {
             // In a real app, redirect back with errors
             die('All fields are required.');
         }
@@ -68,6 +69,7 @@ class OrderController
 
         // --- 2. Create Pending School Record ---
         try {
+            // All orders create a local school record first.
             $stmt = $pdo->prepare("INSERT INTO schools (name, email, domain, status) VALUES (?, ?, ?, ?)");
             $stmt->execute([$school_name, $email, $domain, 'pending']);
             $school_id = $pdo->lastInsertId();
@@ -82,7 +84,14 @@ class OrderController
             die("Error creating local school record: " . $e->getMessage());
         }
 
-        // --- 3. Create WHMCS Client ---
+        if ($payment_method === 'paystack') {
+            // --- Paystack Flow ---
+            // Redirect to our local payment page
+            header('Location: /payment/paystack?school_id=' . $school_id);
+            exit;
+        }
+
+        // --- 3. WHMCS / Bank Transfer Flow ---
         $clientData = [
             'firstname' => $firstname,
             'lastname'  => $lastname,

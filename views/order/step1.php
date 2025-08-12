@@ -83,7 +83,19 @@
                     <input type="password" id="password" name="password" required>
                 </div>
 
-                <button type="submit" class="btn-submit">Complete Order & Proceed to Payment</button>
+                <div class="form-group">
+                    <label>Choose a Payment Method</label>
+                    <div>
+                        <input type="radio" id="paystack" name="payment_method" value="paystack" checked required>
+                        <label for="paystack" style="display: inline-block; font-weight: normal;">Pay with Card (Paystack)</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="banktransfer" name="payment_method" value="banktransfer" required>
+                        <label for="banktransfer" style="display: inline-block; font-weight: normal;">Pay via Bank Transfer</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Complete Order & Proceed</button>
             </div>
         </form>
     </div>

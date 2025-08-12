@@ -23,6 +23,7 @@ $base_path = ''; // If the app is in a subdirectory, change this
 
 use EduFlex\Controllers\OrderController;
 use EduFlex\Controllers\WebhookController;
+use EduFlex\Controllers\PaymentController;
 
 // Simple router
 $route = parse_url($request_uri, PHP_URL_PATH) ?? '';
@@ -44,6 +45,16 @@ switch ($route) {
         $controller->showSuccess();
         break;
 
+    case 'order/thank-you':
+        // A simple thank you page after Paystack payment attempt
+        require_once __DIR__ . '/../views/order/thank-you.php';
+        break;
+
+    case 'payment/paystack':
+        $controller = new PaymentController();
+        $controller->showPaystackForm();
+        break;
+
     case 'api/domain-check':
         $controller = new OrderController();
         $controller->checkDomain();
@@ -52,6 +63,11 @@ switch ($route) {
     case 'webhooks/whmcs':
         $controller = new WebhookController();
         $controller->handleWhmcs();
+        break;
+
+    case 'webhooks/paystack':
+        $controller = new WebhookController();
+        $controller->handlePaystack();
         break;
 
     case '':

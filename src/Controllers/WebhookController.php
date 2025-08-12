@@ -56,35 +56,75 @@ class WebhookController
         $userId = $data['userid'] ?? null;
 
         if (!$invoiceId || !$userId) {
-            // Not enough data to proceed
-            return;
+            return; // Not enough data
         }
 
         try {
             $pdo = \EduFlex\Core\Database::getConnection();
-
-            // We need to find the order associated with this invoice to get the school ID.
-            // The webhook doesn't give us our internal school ID.
-            // We'll find the school via the WHMCS client ID.
             $stmt = $pdo->prepare("SELECT id FROM schools WHERE whmcs_client_id = ? AND status = 'pending'");
             $stmt->execute([$userId]);
             $school = $stmt->fetch();
 
             if ($school) {
-                // Found a matching pending school, let's activate it.
                 $updateStmt = $pdo->prepare("UPDATE schools SET status = 'active' WHERE id = ?");
                 $updateStmt->execute([$school['id']]);
-
-                // Log success
-                file_put_contents(__DIR__ . '/../../webhook.log', "Activated school ID: {$school['id']}\n", FILE_APPEND);
-            } else {
-                // Log that no matching school was found
-                file_put_contents(__DIR__ . '/../../webhook.log', "No pending school found for WHMCS client ID: {$userId}\n", FILE_APPEND);
+                file_put_contents(__DIR__ . '/../../webhook.log', "WHMCS: Activated school ID: {$school['id']}\n", FILE_APPEND);
             }
-
         } catch (\PDOException $e) {
-            // Log the database error
-            file_put_contents(__DIR__ . '/../../webhook.log', "Database error during webhook processing: " . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/../../webhook.log', "WHMCS DB Error: " . $e->getMessage() . "\n", FILE_APPEND);
         }
+    }
+
+    /**
+     * Handle incoming webhooks from Paystack.
+     */
+    public function handlePaystack()
+    {
+        $payload = file_get_contents('php://input');
+
+        // Verify the webhook signature
+        $paystackConfig = require __DIR__ . '/../../config/paystack.php';
+        if (($_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? '') !== hash_hmac('sha512', $payload, $paystackConfig['secret_key'])) {
+            http_response_code(401);
+            echo "Signature verification failed.";
+            exit;
+        }
+
+        $data = json_decode($payload, true);
+
+        // Log the request
+        $log_entry = "--- Paystack Webhook Received ---\nPayload: " . json_encode($data, JSON_PRETTY_PRINT) . "\n\n";
+        file_put_contents(__DIR__ . '/../../webhook.log', $log_entry, FILE_APPEND);
+
+        if (isset($data['event']) && $data['event'] === 'charge.success') {
+            $reference = $data['data']['reference'] ?? null;
+            if ($reference) {
+                // For security, verify the transaction again with the API
+                $paystackApi = new \EduFlex\Core\PaystackApi();
+                $verification = $paystackApi->verifyTransaction($reference);
+
+                if (($verification['data']['status'] ?? '') === 'success') {
+                    // Extract school ID from reference: 'eduflex-{school_id}-{timestamp}'
+                    $parts = explode('-', $reference);
+                    if (count($parts) === 3 && $parts[0] === 'eduflex') {
+                        $school_id = (int)$parts[1];
+
+                        // Activate the school
+                        try {
+                            $pdo = \EduFlex\Core\Database::getConnection();
+                            $stmt = $pdo->prepare("UPDATE schools SET status = 'active' WHERE id = ? AND status = 'pending'");
+                            $stmt->execute([$school_id]);
+                            file_put_contents(__DIR__ . '/../../webhook.log', "Paystack: Activated school ID: {$school_id}\n", FILE_APPEND);
+                        } catch (\PDOException $e) {
+                            file_put_contents(__DIR__ . '/../../webhook.log', "Paystack DB Error: " . $e->getMessage() . "\n", FILE_APPEND);
+                        }
+                    }
+                }
+            }
+        }
+
+        http_response_code(200);
+        echo "Webhook received.";
+        exit;
     }
 }
