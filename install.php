@@ -68,8 +68,19 @@ if ($step === 'install' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $success_messages[] = "Database tables created successfully.";
+
+            // 1b. Handle schema migration for existing tables
+            $db_name = $config['name'];
+            $stmt = $pdo->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'schools' AND COLUMN_NAME = 'whmcs_invoice_id'");
+            $stmt->execute([$db_name]);
+            if ($stmt->fetch() === false) {
+                // Column does not exist, so add it.
+                $pdo->exec("ALTER TABLE `schools` ADD COLUMN `whmcs_invoice_id` INT UNSIGNED NULL AFTER `whmcs_order_id`");
+                $success_messages[] = "Database schema updated successfully (added missing column).";
+            }
+
         } catch (Exception $e) {
-            $errors[] = "Error creating database tables: " . $e->getMessage();
+            $errors[] = "Error during database setup: " . $e->getMessage();
         }
 
         // 2. Create admin user

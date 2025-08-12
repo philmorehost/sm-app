@@ -52,7 +52,17 @@
                         <?php foreach ($orders as $order): ?>
                             <tr>
                                 <td><?= htmlspecialchars($order['id']) ?></td>
-                                <td><?= htmlspecialchars($order['firstname'] . ' ' . $order['lastname']) ?></td>
+                                <td>
+                                    <?php
+                                    // The GetOrders API response might not have firstname/lastname directly.
+                                    // We'll display the 'name' field if it exists, otherwise the user id.
+                                    if (!empty($order['name'])) {
+                                        echo htmlspecialchars($order['name']);
+                                    } elseif (!empty($order['userid'])) {
+                                        echo 'User ID: ' . htmlspecialchars($order['userid']);
+                                    }
+                                    ?>
+                                </td>
                                 <td><?= htmlspecialchars($order['amount']) ?></td>
                                 <td><?= htmlspecialchars($order['paymentmethod']) ?></td>
                                 <td><?= htmlspecialchars($order['status']) ?></td>

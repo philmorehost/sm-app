@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `super_admins` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Schema migration to add the invoice ID column for older installations.
 -- You can add a default super admin user for initial setup,
 -- but be sure to change the password in a real environment.
 -- Example: INSERT INTO `super_admins` (`name`, `email`, `password`) VALUES ('Super Admin', 'admin@eduflex.com', PASSWORD_HASH('password123', PASSWORD_DEFAULT));

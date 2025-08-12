@@ -19,10 +19,10 @@
 <body>
     <div class="container">
         <h1>Order Received!</h1>
-        <p>Thank you for your order. Your account and order have been created successfully.</p>
-        <p>You will now be redirected to your invoice to complete the payment.</p>
+        <p>Thank you! Your account and order have been created successfully.</p>
+        <p>To complete the process, you will now be securely redirected to our client portal to pay the invoice.</p>
         <div class="spinner"></div>
-        <p><small>If you are not redirected automatically in 5 seconds, <a href="<?= htmlspecialchars($invoice_url) ?>">click here</a>.</small></p>
+        <p><small>If you are not redirected automatically in 5 seconds, <a href="<?= htmlspecialchars($invoice_url) ?>">please click here to proceed to payment</a>.</small></p>
     </div>
 </body>
 </html>

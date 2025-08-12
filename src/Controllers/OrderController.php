@@ -135,12 +135,21 @@ class OrderController
         $stmt = $pdo->prepare("UPDATE schools SET whmcs_order_id = ?, whmcs_invoice_id = ? WHERE id = ?");
         $stmt->execute([$orderId, $invoiceId, $school_id]);
 
-        // --- 7. Redirect to Success Page ---
-        $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
-        $whmcsBaseUrl = rtrim(dirname($whmcsConfig['url']), '/includes');
-        $invoiceUrl = $whmcsBaseUrl . '/viewinvoice.php?id=' . $invoiceId;
+        // --- 7. Create SSO Token and Redirect to Invoice ---
+        $destination = 'clientarea.php?action=viewinvoice&id=' . $invoiceId;
+        $ssoResult = $whmcsApi->createSsoToken($clientId, $destination);
 
-        header('Location: /order/success?invoice_url=' . urlencode($invoiceUrl));
+        if ($ssoResult['result'] !== 'success' || empty($ssoResult['redirect_url'])) {
+            // If SSO fails, fall back to the direct invoice URL. The user will have to log in manually.
+            $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
+            $whmcsBaseUrl = rtrim(dirname($whmcsConfig['url']), '/includes');
+            $invoiceUrl = $whmcsBaseUrl . '/viewinvoice.php?id=' . $invoiceId;
+            header('Location: /order/success?invoice_url=' . urlencode($invoiceUrl));
+            exit;
+        }
+
+        $ssoUrl = $ssoResult['redirect_url'];
+        header('Location: /order/success?invoice_url=' . urlencode($ssoUrl));
         exit;
     }
 

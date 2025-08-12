@@ -75,6 +75,10 @@
                                             <input type="hidden" name="id" value="<?= $school['id'] ?>">
                                             <button type="submit" class="btn btn-approve">Approve</button>
                                         </form>
+                                        <form action="/super-admin/schools/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this pending school? This cannot be undone.');">
+                                            <input type="hidden" name="id" value="<?= $school['id'] ?>">
+                                            <button type="submit" class="btn btn-delete">Delete</button>
+                                        </form>
                                     <?php else: ?>
                                         <a href="/super-admin/schools/edit?id=<?= $school['id'] ?>" class="btn btn-secondary">Edit</a>
                                         <form action="/super-admin/schools/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this school?');">

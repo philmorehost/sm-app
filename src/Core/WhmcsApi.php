@@ -78,6 +78,27 @@ class WhmcsApi
     }
 
     /**
+     * Creates a Single Sign-On token for a client.
+     *
+     * @param int $clientId The ID of the client to log in.
+     * @param string|null $destination The destination page after login (e.g., 'clientarea.php?action=invoices').
+     * @return array The result from the WHMCS API.
+     */
+    public function createSsoToken(int $clientId, ?string $destination = null): array
+    {
+        $params = [
+            'action' => 'CreateSsoToken',
+            'client_id' => $clientId,
+        ];
+
+        if ($destination) {
+            $params['destination'] = $destination;
+        }
+
+        return $this->sendRequest($params);
+    }
+
+    /**
      * Checks the availability of a domain name using the WHMCS API.
      *
      * @param string $domain The domain name to check.
