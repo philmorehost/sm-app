@@ -21,16 +21,17 @@ class WebhookController
         $log_entry .= "Payload: " . $payload . "\n\n";
         file_put_contents(__DIR__ . '/../../webhook.log', $log_entry, FILE_APPEND);
 
-        // --- 3. Verify the signature (Placeholder for now) ---
+        // --- 3. Verify the signature ---
         // This is a critical security step.
-        // $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
-        // $webhookSecret = $whmcsConfig['webhook_secret'] ?? '';
-        // $signature = $headers['X-Whmcs-Signature'] ?? '';
-        // if (!hash_equals(hash_hmac('sha256', $payload, $webhookSecret), $signature)) {
-        //     http_response_code(401);
-        //     echo "Signature verification failed.";
-        //     exit;
-        // }
+        $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
+        $webhookSecret = $whmcsConfig['webhook_secret'] ?? '';
+        $signature = $headers['X-Whmcs-Signature'] ?? '';
+        if (empty($webhookSecret) || !hash_equals(hash_hmac('sha256', $payload, $webhookSecret), $signature)) {
+            http_response_code(401);
+            file_put_contents(__DIR__ . '/../../webhook.log', "Signature verification failed.\n", FILE_APPEND);
+            echo "Signature verification failed.";
+            exit;
+        }
 
         $data = json_decode($payload, true);
 

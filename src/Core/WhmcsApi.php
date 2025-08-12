@@ -61,6 +61,23 @@ class WhmcsApi
     }
 
     /**
+     * Updates an invoice in WHMCS.
+     *
+     * @param int $invoiceId The ID of the invoice to update.
+     * @param array $params The parameters to update (e.g., status).
+     * @return array The result from the WHMCS API.
+     */
+    public function updateInvoice(int $invoiceId, array $params): array
+    {
+        $all_params = array_merge([
+            'action' => 'UpdateInvoice',
+            'invoiceid' => $invoiceId,
+        ], $params);
+
+        return $this->sendRequest($all_params);
+    }
+
+    /**
      * Checks the availability of a domain name using the WHMCS API.
      *
      * @param string $domain The domain name to check.

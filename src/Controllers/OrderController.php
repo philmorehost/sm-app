@@ -98,8 +98,15 @@ class OrderController
         $clientResult = $whmcsApi->addClient($clientData);
 
         if ($clientResult['result'] !== 'success' || empty($clientResult['clientid'])) {
-            // In a real app, you'd want to log this and show a friendly error
-            die("Could not create client account in WHMCS: " . ($clientResult['message'] ?? 'Unknown error'));
+            session_start();
+            // Check for the specific duplicate email error message from WHMCS
+            if (strpos($clientResult['message'], 'A user already exists with that email address') !== false) {
+                $_SESSION['error_message'] = 'A user account with this email address already exists. Please use a different email.';
+            } else {
+                $_SESSION['error_message'] = "Could not create your account: " . ($clientResult['message'] ?? 'An unknown error occurred.');
+            }
+            header('Location: /order');
+            exit;
         }
         $clientId = $clientResult['clientid'];
 
@@ -114,7 +121,7 @@ class OrderController
             'domain' => [$domain],
             'domaintype' => ['register'],
             'regperiod' => [1], // 1 year
-            'paymentmethod' => 'mailinpayment', // A safe default that doesn't require pre-configuration
+            'paymentmethod' => 'banktransfer', // Set to a method supported by the user's WHMCS
         ];
         $orderResult = $whmcsApi->addOrder($orderData);
 
@@ -124,16 +131,22 @@ class OrderController
         $orderId = $orderResult['orderid'];
         $invoiceId = $orderResult['invoiceid'];
 
-        // --- 6. Update local record with order ID ---
-        $stmt = $pdo->prepare("UPDATE schools SET whmcs_order_id = ? WHERE id = ?");
-        $stmt->execute([$orderId, $school_id]);
+        // --- 6. Update local record with order and invoice ID ---
+        $stmt = $pdo->prepare("UPDATE schools SET whmcs_order_id = ?, whmcs_invoice_id = ? WHERE id = ?");
+        $stmt->execute([$orderId, $invoiceId, $school_id]);
 
-        // --- 7. Redirect to Invoice ---
+        // --- 7. Redirect to Success Page ---
         $whmcsConfig = require __DIR__ . '/../../config/whmcs.php';
         $whmcsBaseUrl = rtrim(dirname($whmcsConfig['url']), '/includes');
         $invoiceUrl = $whmcsBaseUrl . '/viewinvoice.php?id=' . $invoiceId;
 
-        header('Location: ' . $invoiceUrl);
+        header('Location: /order/success?invoice_url=' . urlencode($invoiceUrl));
         exit;
+    }
+
+    public function showSuccess()
+    {
+        $invoice_url = $_GET['invoice_url'] ?? '/';
+        require_once __DIR__ . '/../../views/order/success.php';
     }
 }

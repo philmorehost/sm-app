@@ -39,6 +39,11 @@ switch ($route) {
         $controller->processOrder();
         break;
 
+    case 'order/success':
+        $controller = new OrderController();
+        $controller->showSuccess();
+        break;
+
     case 'api/domain-check':
         $controller = new OrderController();
         $controller->checkDomain();
